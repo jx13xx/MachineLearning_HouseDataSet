@@ -11,25 +11,26 @@ from settings import *
 
 
 class regression:
-    spam = None
+    temp = None
     LOGS_SEPARATOR = settings.logged
 
     def __init__(self):
         self.run_main()
+        self.X
 
     def run_main(self):
         try:
             Train_Data = pd.read_csv('C:/Users/jeenx/Desktop/Assignment2/Assignment_2_pack/Assignment_2_pack/train.csv')
             n = Train_Data
-            self.spam = self.read(n) if (Train_Data is not None) else print("")
+            self.temp = self.read(n) if (Train_Data is not None) else print("")
         except:
             print('File not Found exception.')
 
-    def read(self,n):
+    def read(self, n):
         self.display_data(n)
         self.display_info(n)
         # self.display_describe(n)
-        #get the total numbers of cells with NA values
+        # get the total numbers of cells with NA values
         print(self.LOGS_SEPARATOR)
         print('Total Number of NULL Data Before DATA CLEAN:', n.isna().sum().sum())
         print('Shape of Training Data: ', n.shape)
@@ -40,54 +41,66 @@ class regression:
         Y = n.SalePrice
 
         n.drop(['Id', 'MiscFeature', 'PoolQC', 'Fence', 'Alley', 'SalePrice'], axis=1, inplace=True)
-        X = n
+        self.X = n
         # self.display_data(X)
         print('Total Number of NULL Data After DATA CLEAN:', n.isna().sum().sum())
         print('Shape of Training Data: ', n.shape)
         print(self.LOGS_SEPARATOR)
-        #FINDING THE TOTAL NUM AFTER DROPPING UNCESSSARY COLUMNS
-        Nulls1 = pd.isnull(X).sum()
+
+        # FINDING THE TOTAL NUM AFTER DROPPING UNCESSSARY COLUMNS
+        Nulls1 = pd.isnull(self.X).sum()
         Nulls1[Nulls1 > 0]
         print(Nulls1)
 
-        print(X['BsmtQual'].head(10))
-        print(X['BsmtQual'].describe())
+        print(self.X['BsmtQual'].head(10))
+        print(self.X['BsmtQual'].describe())
 
         # Can be Median or Mean
+        self.transform_data(self.X)
 
+        # Encode target labels with value between 0 and n_classes-1.
+        self.temp = print('ENCODING_DONE') if(self.data_encode(self.X) is True) else print('ENCODING_FAILED')
+        self.display_data(self.X)
+
+
+
+        #
+        # # print(X.head(50))
+        #
+        # scaler = StandardScaler()
+        # scaler.fit(X)
+        # # change y to natural log
+        # Y = np.log(Y)
+        #
+        # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1, random_state=42)
+        # print('hello')
+
+    def transform_data(self, X):
+        print('transform')
         imr = SimpleImputer(missing_values=np.nan, strategy='median')
         imr = imr.fit(X[['LotFrontage']])
         X['LotFrontage'] = imr.transform(X[['LotFrontage']])
+
 
         imr1 = SimpleImputer(missing_values=np.nan, strategy='median')
         imr1 = imr1.fit(X[['MasVnrArea']])
         X['MasVnrArea'] = imr1.transform(X[['MasVnrArea']])
 
         imr2 = SimpleImputer(missing_values=np.nan, strategy='median')
-        imr2 = imr2.fit(X[['GarageYrBlt']])
+        imr2 = imr2.fit(self.X[['GarageYrBlt']])
         X['GarageYrBlt'] = imr1.transform(X[['GarageYrBlt']])
 
-        # Filling the NA Values with NA and Appropriate Replacements
-        X['MasVnrType'].fillna("None", inplace=True)
-        X['BsmtQual'].fillna("NA", inplace=True)
-        X['BsmtCond'].fillna("NA", inplace=True)
-        X['BsmtExposure'].fillna("NA", inplace=True)
-        X['BsmtFinType1'].fillna("NA", inplace=True)
-        X['BsmtFinType2'].fillna("NA", inplace=True)
-        X['Electrical'].fillna("SBrkr", inplace=True)
-        X['FireplaceQu'].fillna("TA", inplace=True)
-        X['GarageType'].fillna("NA", inplace=True)
-        X['GarageFinish'].fillna("NA", inplace=True)
-        X['GarageQual'].fillna("NA", inplace=True)
-        X['GarageCond'].fillna("NA", inplace=True)
-        print('done till here')
-        X.columns
 
-        print(X['MSZoning'].head(10))
-        print(X['MSZoning'].describe())
+        self.temp = print('COMPLETED FILL NA') if (self.fill_Na(X) is True) else print("!!!!FILL NA FAILED")
+        # self.display_data(X)
+        # print(X['GarageType'].head(10))
+        # print(X['GarageType'].describe())
 
+        print('end-transform')
+
+    def data_encode(self,X):
+        print('Inside Data Encoding')
         labelencoder = LabelEncoder()
-
         X['MSZoning'] = labelencoder.fit_transform(X['MSZoning'].astype(str))
         X['Street'] = labelencoder.fit_transform(X['Street'])
         X['LotShape'] = labelencoder.fit_transform(X['LotShape'])
@@ -129,32 +142,38 @@ class regression:
         X['PavedDrive'] = labelencoder.fit_transform(X['PavedDrive'])
         X['SaleType'] = labelencoder.fit_transform(X['SaleType'].astype(str))
         X['SaleCondition'] = labelencoder.fit_transform(X['SaleCondition'])
+        return True
 
-        # print(X.head(50))
 
-        scaler = StandardScaler()
-        scaler.fit(X)
-        # change y to natural log
-        Y = np.log(Y)
+    def fill_Na(self,X):
+        # Filling the NA Values with NA and Appropriate Replacements
+        print('inside fille NA')
+        X['MasVnrType'].fillna("None", inplace=True)
+        X['BsmtQual'].fillna("NA", inplace=True)
+        X['BsmtCond'].fillna("NA", inplace=True)
+        X['BsmtExposure'].fillna("NA", inplace=True)
+        X['BsmtFinType1'].fillna("NA", inplace=True)
+        X['BsmtFinType2'].fillna("NA", inplace=True)
+        X['Electrical'].fillna("SBrkr", inplace=True)
+        X['FireplaceQu'].fillna("TA", inplace=True)
+        X['GarageType'].fillna("NA", inplace=True)
+        X['GarageFinish'].fillna("NA", inplace=True)
+        X['GarageQual'].fillna("NA", inplace=True)
+        X['GarageCond'].fillna("NA", inplace=True)
+        print('done till fill NA')
+        return True
 
-        X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1, random_state=42)
-        print ('hello')
-
-    def transform_data(self):
-        print('hey')
-
-    def display_data(self,data, default =10):
+    def display_data(self, data, default=10):
         print('inside display')
         return print(data.head(default))
 
-    def display_info(self,data):
+    def display_info(self, data):
         print('inside info')
         return print(data.info())
 
-    def display_describe(self,data):
+    def display_describe(self, data):
         print('inside describe')
         return print(data.describe())
-
 
 
 p1 = regression();

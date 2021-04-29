@@ -171,7 +171,7 @@ def print_evaluate(true, predicted):
 
 if __name__ == '__main__':
     run_main()
-    print_evaluate(true, )
+    # print_evaluate(true, )
 
 
 
