@@ -17,6 +17,7 @@ class regression:
     def __init__(self):
         self.run_main()
         self.X
+        self.Y
 
     def run_main(self):
         try:
@@ -38,7 +39,7 @@ class regression:
         Nulls = pd.isnull(n).sum()
         Nulls[Nulls > 0]
 
-        Y = n.SalePrice
+        self.Y = n.SalePrice
 
         n.drop(['Id', 'MiscFeature', 'PoolQC', 'Fence', 'Alley', 'SalePrice'], axis=1, inplace=True)
         self.X = n
@@ -62,18 +63,21 @@ class regression:
         self.temp = print('ENCODING_DONE') if(self.data_encode(self.X) is True) else print('ENCODING_FAILED')
         self.display_data(self.X)
 
+        scaler = StandardScaler()
+        scaler.fit(self.X)
+        # change y to natural log
+        self.Y = np.log(self.Y)
+        self.display_data(self.Y)
+        print('Y data above')
 
-
-        #
-        # # print(X.head(50))
-        #
-        # scaler = StandardScaler()
-        # scaler.fit(X)
-        # # change y to natural log
-        # Y = np.log(Y)
-        #
-        # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.Y, test_size=0.1, random_state=42)
         # print('hello')
+        print('Train Split')
+        try:
+            self.temp = "TEST TRAINING COMPLETED" if (self.print_evaluate(True, y_test) is True) else print("!!!!TEST TRAINED FAILED")
+        except Exception as ex:
+            raise RuntimeError("Something bad happened") from ex
+            print('Training Exception')
 
     def transform_data(self, X):
         print('transform')
@@ -164,17 +168,33 @@ class regression:
         return True
 
     def display_data(self, data, default=10):
+        # Listen/ Display  the current value of the data
+        # Default value = 10
         print('inside display')
         return print(data.head(default))
 
     def display_info(self, data):
+        # Display the info data value of the data
         print('inside info')
         return print(data.info())
 
     def display_describe(self, data):
+        # Describe the data of
         print('inside describe')
         return print(data.describe())
 
+    def print_evaluate(self, true=None, predicted=None):
+        print('Evaluation')
+        mae = metrics.mean_absolute_error(true, predicted)
+        mse = metrics.mean_squared_error(true, predicted)
+        rmse = np.sqrt(metrics.mean_squared_error(true, predicted))
+        r2_square = metrics.r2_score(true, predicted)
+        print('MAE:', mae)
+        print('MSE:', mse)
+        print('RMSE:', rmse)
+        print('R2 Square', r2_square)
+        print('--------------------------------')
+        return True;
 
 p1 = regression();
 # p1.run_main();
